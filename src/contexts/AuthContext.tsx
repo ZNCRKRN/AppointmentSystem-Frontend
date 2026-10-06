@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, LoginRequest } from '../types';
+import type { User, LoginRequest } from '../types';
 import { authAPI } from '../services/api';
 
 interface AuthContextType {
@@ -12,6 +12,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook colocated with its provider
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

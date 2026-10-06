@@ -25,8 +25,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Kullanıcılar', path: '/admin/users', roles: ['Admin'] },
   ];
 
-  const filteredNavigation = navigation.filter(item => 
-    item.roles.some(role => user?.roles.includes(role))
+  const filteredNavigation = navigation.filter(item =>
+    !!user && item.roles.includes(user.role)
   );
 
   return (
@@ -58,7 +58,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-700">
-                {user?.email} ({user?.roles.join(', ')})
+                {user?.email} ({user?.role})
               </span>
               <button
                 onClick={handleLogout}

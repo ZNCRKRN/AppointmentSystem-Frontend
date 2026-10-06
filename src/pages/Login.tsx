@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {
@@ -21,22 +21,13 @@ const Login: React.FC = () => {
 
     try {
       await login({ email, password });
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Giriş başarısız');
+    } catch (err: unknown) {
+      // The API returns the message as plain text for 401
+      const data = (err as { response?: { data?: unknown } }).response?.data;
+      setError(typeof data === 'string' ? data : 'Giriş başarısız');
     } finally {
       setLoading(false);
     }
-  };
-
-  const quickLogin = (userType: 'admin' | 'advisor' | 'student') => {
-    const credentials = {
-      admin: { email: 'admin@appointmentsystem.com', password: 'Admin123!' },
-      advisor: { email: 'advisor@appointmentsystem.com', password: 'Advisor123!' },
-      student: { email: 'student@appointmentsystem.com', password: 'Student123!' },
-    };
-    
-    setEmail(credentials[userType].email);
-    setPassword(credentials[userType].password);
   };
 
   return (
@@ -55,34 +46,6 @@ const Login: React.FC = () => {
           <p className="text-lg text-gray-600">
             Hesabınıza giriş yapın
           </p>
-        </div>
-
-        {/* Quick Login Buttons */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <p className="text-center text-sm font-medium text-gray-700 mb-4">Hızlı Giriş:</p>
-          <div className="grid grid-cols-3 gap-3">
-            <button
-              type="button"
-              onClick={() => quickLogin('admin')}
-              className="px-4 py-3 text-sm font-medium bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-200 border border-red-200"
-            >
-              Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => quickLogin('advisor')}
-              className="px-4 py-3 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-200 border border-blue-200"
-            >
-              Danışman
-            </button>
-            <button
-              type="button"
-              onClick={() => quickLogin('student')}
-              className="px-4 py-3 text-sm font-medium bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors duration-200 border border-green-200"
-            >
-              Öğrenci
-            </button>
-          </div>
         </div>
 
         {/* Login Form */}
@@ -145,6 +108,12 @@ const Login: React.FC = () => {
               )}
             </button>
           </form>
+        </div>
+
+        <div className="text-center">
+          <Link to="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-800">
+            Şifremi unuttum
+          </Link>
         </div>
       </div>
     </div>

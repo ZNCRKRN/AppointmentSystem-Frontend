@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
   }
 
   if (roles && roles.length > 0) {
-    const hasRequiredRole = roles.some(role => user?.roles.includes(role));
+    const hasRequiredRole = !!user && roles.includes(user.role);
     if (!hasRequiredRole) {
       return (
         <div className="min-h-screen flex items-center justify-center">

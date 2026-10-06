@@ -20,11 +20,12 @@ const localizer = dateFnsLocalizer({
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { data: appointments = [], isLoading } = useAppointments();
+  // Dashboard shows the calendar and totals, so it loads a larger page than the list view
+  const { data: appointments = [], isLoading } = useAppointments({ pageSize: 100 });
 
   const events = appointments.map(appointment => ({
     id: appointment.id,
-    title: `${appointment.subject} - ${appointment.advisor?.firstName} ${appointment.advisor?.lastName}`,
+    title: `${appointment.subject} - ${user?.role === 'Student' ? appointment.advisorName : appointment.studentName}`,
     start: new Date(appointment.startTime),
     end: new Date(appointment.endTime),
     resource: appointment,
@@ -100,7 +101,7 @@ const Dashboard: React.FC = () => {
             <div className="ml-4">
               <h4 className="text-sm font-medium text-gray-500">Bekleyen</h4>
               <p className="text-3xl font-bold text-gray-900">
-                {appointments.filter(a => a.status === 'Pending').length}
+                {appointments.filter(a => a.status === 'Scheduled').length}
               </p>
             </div>
           </div>

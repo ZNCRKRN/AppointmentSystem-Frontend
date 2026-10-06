@@ -1,13 +1,19 @@
 import axios from 'axios';
-import type { 
-  LoginRequest, 
-  LoginResponse, 
-  Appointment, 
-  Advisor, 
-  Student, 
+import type {
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  ResetPasswordRequest,
+  Appointment,
+  AppointmentListParams,
+  UpdateAppointmentRequest,
+  Advisor,
+  Student,
   Availability,
   CreateAppointmentRequest,
-  CreateAvailabilityRequest
+  CreateAvailabilityRequest,
+  AvailableSlot,
+  AvailableSlotsRequest,
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:5249/api';
@@ -49,99 +55,109 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    const response = await api.post('/Auth/login', credentials);
+    const response = await api.post<LoginResponse>('/Auth/login', credentials);
     return response.data;
   },
-  
-  register: async (userData: any) => {
-    const response = await api.post('/Auth/register', userData);
+
+  register: async (userData: RegisterRequest): Promise<LoginResponse> => {
+    const response = await api.post<LoginResponse>('/Auth/register', userData);
     return response.data;
+  },
+
+  forgotPassword: async (email: string): Promise<void> => {
+    await api.post('/Auth/forgot-password', { email });
+  },
+
+  resetPassword: async (request: ResetPasswordRequest): Promise<void> => {
+    await api.post('/Auth/reset-password', request);
   },
 };
 
 // Appointments API
 export const appointmentsAPI = {
-  getAll: async (): Promise<Appointment[]> => {
-    const response = await api.get('/Appointment');
+  getAll: async (params?: AppointmentListParams): Promise<Appointment[]> => {
+    const response = await api.get<Appointment[]>('/Appointment', { params });
     return response.data;
   },
-  
+
   getById: async (id: number): Promise<Appointment> => {
-    const response = await api.get(`/Appointment/${id}`);
+    const response = await api.get<Appointment>(`/Appointment/${id}`);
     return response.data;
   },
-  
+
   create: async (appointment: CreateAppointmentRequest): Promise<Appointment> => {
-    const response = await api.post('/Appointment', appointment);
+    const response = await api.post<Appointment>('/Appointment', appointment);
     return response.data;
   },
-  
-  update: async (id: number, appointment: Partial<Appointment>): Promise<Appointment> => {
-    const response = await api.put(`/Appointment/${id}`, appointment);
+
+  update: async (id: number, appointment: UpdateAppointmentRequest): Promise<Appointment> => {
+    const response = await api.put<Appointment>(`/Appointment/${id}`, appointment);
     return response.data;
   },
-  
+
   delete: async (id: number): Promise<void> => {
     await api.delete(`/Appointment/${id}`);
+  },
+
+  confirm: async (id: number): Promise<void> => {
+    await api.post(`/Appointment/${id}/confirm`);
+  },
+
+  cancel: async (id: number): Promise<void> => {
+    await api.post(`/Appointment/${id}/cancel`);
+  },
+
+  complete: async (id: number): Promise<void> => {
+    await api.post(`/Appointment/${id}/complete`);
   },
 };
 
 // Advisors API
 export const advisorsAPI = {
   getAll: async (): Promise<Advisor[]> => {
-    const response = await api.get('/Advisor');
+    const response = await api.get<Advisor[]>('/Advisor');
     return response.data;
   },
-  
+
   getById: async (id: number): Promise<Advisor> => {
-    const response = await api.get(`/Advisor/${id}`);
+    const response = await api.get<Advisor>(`/Advisor/${id}`);
     return response.data;
   },
 };
 
-// Students API
+// Students API (list is admin-only)
 export const studentsAPI = {
   getAll: async (): Promise<Student[]> => {
-    const response = await api.get('/Student');
-    return response.data;
-  },
-  
-  getById: async (id: number): Promise<Student> => {
-    const response = await api.get(`/Student/${id}`);
+    const response = await api.get<Student[]>('/Student');
     return response.data;
   },
 };
 
-// Availability API
+// Availability API (advisor-owned schedule and slot lookup)
 export const availabilityAPI = {
   getAll: async (): Promise<Availability[]> => {
-    const response = await api.get('/Availability');
+    const response = await api.get<Availability[]>('/Availability');
     return response.data;
   },
-  
-  getByAdvisorId: async (advisorId: number): Promise<Availability[]> => {
-    const response = await api.get(`/Availability/advisor/${advisorId}`);
-    return response.data;
-  },
-  
+
   create: async (availability: CreateAvailabilityRequest): Promise<Availability> => {
-    const response = await api.post('/Availability', availability);
+    const response = await api.post<Availability>('/Availability', availability);
     return response.data;
   },
-  
-  update: async (id: number, availability: Partial<Availability>): Promise<Availability> => {
-    const response = await api.put(`/Availability/${id}`, availability);
+
+  update: async (id: number, availability: Partial<CreateAvailabilityRequest>): Promise<Availability> => {
+    const response = await api.put<Availability>(`/Availability/${id}`, availability);
     return response.data;
   },
-  
+
   delete: async (id: number): Promise<void> => {
     await api.delete(`/Availability/${id}`);
+  },
+
+  getSlots: async (request: AvailableSlotsRequest): Promise<AvailableSlot[]> => {
+    const response = await api.post<AvailableSlot[]>('/Availability/available-slots', request);
+    return response.data;
   },
 };
 
 export default api;
-
-
-
-
-
