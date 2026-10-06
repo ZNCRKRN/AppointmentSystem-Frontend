@@ -14,6 +14,7 @@ import type {
   CreateAvailabilityRequest,
   AvailableSlot,
   AvailableSlotsRequest,
+  AdminUser,
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:5249/api';
@@ -154,9 +155,26 @@ export const availabilityAPI = {
     await api.delete(`/Availability/${id}`);
   },
 
+  getByAdvisor: async (advisorId: number): Promise<Availability[]> => {
+    const response = await api.get<Availability[]>(`/Availability/advisor/${advisorId}`);
+    return response.data;
+  },
+
   getSlots: async (request: AvailableSlotsRequest): Promise<AvailableSlot[]> => {
     const response = await api.post<AvailableSlot[]>('/Availability/available-slots', request);
     return response.data;
+  },
+};
+
+// Admin API (user management)
+export const adminAPI = {
+  getUsers: async (): Promise<AdminUser[]> => {
+    const response = await api.get<AdminUser[]>('/Admin/users');
+    return response.data;
+  },
+
+  deleteUser: async (id: string): Promise<void> => {
+    await api.delete(`/Admin/users/${id}`);
   },
 };
 

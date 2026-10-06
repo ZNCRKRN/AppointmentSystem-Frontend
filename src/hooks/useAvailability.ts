@@ -2,10 +2,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { availabilityAPI } from '../services/api';
 import type { CreateAvailabilityRequest } from '../types';
 
-export const useAvailabilities = () => {
+export const useAvailabilities = (enabled = true) => {
   return useQuery({
     queryKey: ['availabilities'],
     queryFn: availabilityAPI.getAll,
+    enabled,
+  });
+};
+
+// Full schedule of one advisor (admin view)
+export const useAdvisorAvailabilities = (advisorId: number | null) => {
+  return useQuery({
+    queryKey: ['availabilities', 'advisor', advisorId],
+    queryFn: () => availabilityAPI.getByAdvisor(advisorId!),
+    enabled: !!advisorId,
   });
 };
 

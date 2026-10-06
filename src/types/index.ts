@@ -140,3 +140,12 @@ export interface AvailableSlot {
   endTime: string;
   isAvailable: boolean;
 }
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: Role;
+  firstName: string;
+  lastName: string;
+  department?: string | null;
+}

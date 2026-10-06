@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
-import { useAvailabilities, useCreateAvailability, useDeleteAvailability } from '../hooks/useAvailability';
+import { useAvailabilities, useAdvisorAvailabilities, useCreateAvailability, useDeleteAvailability } from '../hooks/useAvailability';
+import { useAdvisors } from '../hooks/useAdvisors';
+import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
 const Availability: React.FC = () => {
-  const { data: availabilities = [], isLoading } = useAvailabilities();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
+
+  // Advisors see their own schedule; admins pick an advisor and see that schedule (view and delete only)
+  const [advisorChoice, setAdvisorChoice] = useState('');
+  const { data: advisors = [] } = useAdvisors();
+  const ownSchedule = useAvailabilities(!isAdmin);
+  const advisorSchedule = useAdvisorAvailabilities(isAdmin && advisorChoice ? parseInt(advisorChoice, 10) : null);
+  const availabilities = (isAdmin ? advisorSchedule.data : ownSchedule.data) ?? [];
+  const isLoading = isAdmin ? !!advisorChoice && advisorSchedule.isLoading : ownSchedule.isLoading;
   const createAvailability = useCreateAvailability();
   const deleteAvailability = useDeleteAvailability();
   
@@ -72,13 +83,31 @@ const Availability: React.FC = () => {
             <h3 className="text-lg leading-6 font-medium text-gray-900">
               Müsaitlik Saatleri
             </h3>
-            <button
+            {!isAdmin && <button
               onClick={() => setShowForm(true)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
             >
               Yeni Müsaitlik Ekle
-            </button>
+            </button>}
           </div>
+
+          {isAdmin && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">Danışman</label>
+              <select
+                value={advisorChoice}
+                onChange={(e) => setAdvisorChoice(e.target.value)}
+                className="mt-1 block w-full sm:w-96 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              >
+                <option value="">Danışman seçin</option>
+                {advisors.map((advisor) => (
+                  <option key={advisor.id} value={advisor.id}>
+                    {advisor.firstName} {advisor.lastName} - {advisor.department}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
             <table className="min-w-full divide-y divide-gray-300">
@@ -140,7 +169,7 @@ const Availability: React.FC = () => {
 
           {availabilities.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">Henüz müsaitlik saati eklenmemiş.</p>
+              <p className="text-gray-500">{isAdmin && !advisorChoice ? 'Müsaitliğini görmek için bir danışman seçin.' : 'Henüz müsaitlik saati eklenmemiş.'}</p>
             </div>
           )}
         </div>

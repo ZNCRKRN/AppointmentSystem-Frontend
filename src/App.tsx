@@ -51,7 +51,7 @@ function App() {
               <Route
                 path="/my-appointments"
                 element={
-                  <ProtectedRoute roles={['Advisor', 'Student']}>
+                  <ProtectedRoute roles={['Advisor', 'Student', 'Admin']}>
                     <Layout>
                       <div className="relative">
                         <MyAppointments />
@@ -64,7 +64,7 @@ function App() {
               <Route
                 path="/availability"
                 element={
-                  <ProtectedRoute roles={['Advisor']}>
+                  <ProtectedRoute roles={['Advisor', 'Admin']}>
                     <Layout>
                       <Availability />
                     </Layout>

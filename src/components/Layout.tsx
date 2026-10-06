@@ -20,8 +20,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', path: '/dashboard', roles: ['Admin', 'Advisor', 'Student'] },
-    { name: 'Randevularım', path: '/my-appointments', roles: ['Advisor', 'Student'] },
-    { name: 'Müsaitlik', path: '/availability', roles: ['Advisor'] },
+    { name: 'Randevularım', path: '/my-appointments', roles: ['Advisor', 'Student', 'Admin'] },
+    { name: 'Müsaitlik', path: '/availability', roles: ['Advisor', 'Admin'] },
     { name: 'Kullanıcılar', path: '/admin/users', roles: ['Admin'] },
   ];
 

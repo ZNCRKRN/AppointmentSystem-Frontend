@@ -31,14 +31,18 @@ const FILTER_OPTIONS: { value: AppointmentStatus | 'all'; label: string }[] = [
   { value: 'Cancelled', label: 'İptal Edilen' },
 ];
 
-const counterpartName = (appointment: Appointment, isStudent: boolean) =>
-  isStudent ? appointment.advisorName : appointment.studentName;
+// Students see their advisor, advisors see the student, admins see both
+const counterpartName = (appointment: Appointment, role: string | undefined) => {
+  if (role === 'Student') return appointment.advisorName;
+  if (role === 'Advisor') return appointment.studentName;
+  return `${appointment.advisorName} / ${appointment.studentName}`;
+};
 
-const buildCsv = (appointments: Appointment[], isStudent: boolean) => {
-  const header = ['Konu', isStudent ? 'Danışman' : 'Öğrenci', 'Başlangıç', 'Bitiş', 'Durum', 'Tür'];
+const buildCsv = (appointments: Appointment[], role: string | undefined) => {
+  const header = ['Konu', counterpartHeader(role), 'Başlangıç', 'Bitiş', 'Durum', 'Tür'];
   const rows = appointments.map((a) => [
     a.subject,
-    counterpartName(a, isStudent),
+    counterpartName(a, role),
     format(new Date(a.startTime), 'yyyy-MM-dd HH:mm'),
     format(new Date(a.endTime), 'yyyy-MM-dd HH:mm'),
     STATUS_LABELS[a.status],
@@ -51,10 +55,18 @@ const buildCsv = (appointments: Appointment[], isStudent: boolean) => {
     .join('\r\n');
 };
 
+const counterpartHeader = (role: string | undefined) => {
+  if (role === 'Student') return 'Danışman';
+  if (role === 'Advisor') return 'Öğrenci';
+  return 'Danışman / Öğrenci';
+};
+
 const MyAppointments: React.FC = () => {
   const { user } = useAuth();
   const isStudent = user?.role === 'Student';
   const isAdvisor = user?.role === 'Advisor';
+  const isAdmin = user?.role === 'Admin';
+  const canManage = isAdvisor || isAdmin;
 
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'all'>('all');
   const [page, setPage] = useState(1);
@@ -115,7 +127,7 @@ const MyAppointments: React.FC = () => {
         if (batch.length < EXPORT_BATCH_SIZE) break;
       }
 
-      const blob = new Blob([buildCsv(all, isStudent)], { type: 'text/csv;charset=utf-8' });
+      const blob = new Blob([buildCsv(all, user?.role)], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -199,7 +211,7 @@ const MyAppointments: React.FC = () => {
               <tr>
                 <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">Konu</th>
                 <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">
-                  {isStudent ? 'Danışman' : 'Öğrenci'}
+                  {counterpartHeader(user?.role)}
                 </th>
                 <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">Tarih & Saat</th>
                 <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">Durum</th>
@@ -217,7 +229,7 @@ const MyAppointments: React.FC = () => {
                   </td>
                   <td className="px-8 py-6">
                     <div className="text-sm font-medium text-gray-900">
-                      {counterpartName(appointment, isStudent)}
+                      {counterpartName(appointment, user?.role)}
                     </div>
                   </td>
                   <td className="px-8 py-6">
@@ -235,7 +247,7 @@ const MyAppointments: React.FC = () => {
                   </td>
                   <td className="px-8 py-6">
                     <div className="flex flex-wrap items-center gap-2">
-                      {isAdvisor && appointment.status === 'Scheduled' && (
+                      {canManage && appointment.status === 'Scheduled' && (
                         <>
                           <button
                             onClick={() => runAction(appointment.id, 'confirm', 'Randevu onaylandı.')}
@@ -254,7 +266,7 @@ const MyAppointments: React.FC = () => {
                         </>
                       )}
 
-                      {isAdvisor && appointment.status === 'Confirmed' && (
+                      {canManage && appointment.status === 'Confirmed' && (
                         <button
                           onClick={() => runAction(appointment.id, 'complete', 'Randevu tamamlandı olarak işaretlendi.')}
                           disabled={appointmentAction.isPending}
@@ -264,7 +276,7 @@ const MyAppointments: React.FC = () => {
                         </button>
                       )}
 
-                      {isStudent && (appointment.status === 'Scheduled' || appointment.status === 'Confirmed') && (
+                      {(isStudent || isAdmin) && (appointment.status === 'Scheduled' || appointment.status === 'Confirmed') && (
                         <button
                           onClick={() => runAction(appointment.id, 'cancel', 'Randevu iptal edildi.')}
                           disabled={appointmentAction.isPending}
