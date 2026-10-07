@@ -127,6 +127,7 @@ export interface CreateAvailabilityRequest {
   endTime: string;
   isRecurring: boolean;
   specificDate?: string;
+  advisorId?: number; // set by an Admin creating availability on behalf of an advisor
 }
 
 export interface AvailableSlotsRequest {

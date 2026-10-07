@@ -9,7 +9,7 @@ const Availability: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'Admin';
 
-  // Advisors see their own schedule; admins pick an advisor and see that schedule (view and delete only)
+  // Advisors see their own schedule; admins pick an advisor and can view, add to, or delete that schedule
   const [advisorChoice, setAdvisorChoice] = useState('');
   const { data: advisors = [] } = useAdvisors();
   const ownSchedule = useAvailabilities(!isAdmin);
@@ -34,7 +34,7 @@ const Availability: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       await createAvailability.mutateAsync({
         dayOfWeek: formData.dayOfWeek,
@@ -42,8 +42,9 @@ const Availability: React.FC = () => {
         endTime: formData.endTime,
         isRecurring: formData.isRecurring,
         specificDate: formData.specificDate || undefined,
+        advisorId: isAdmin ? parseInt(advisorChoice, 10) : undefined,
       });
-      
+
       setShowForm(false);
       setFormData({
         dayOfWeek: 1,
@@ -83,12 +84,14 @@ const Availability: React.FC = () => {
             <h3 className="text-lg leading-6 font-medium text-gray-900">
               Müsaitlik Saatleri
             </h3>
-            {!isAdmin && <button
-              onClick={() => setShowForm(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-            >
-              Yeni Müsaitlik Ekle
-            </button>}
+            {(!isAdmin || advisorChoice) && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+              >
+                Yeni Müsaitlik Ekle
+              </button>
+            )}
           </div>
 
           {isAdmin && (
@@ -180,10 +183,16 @@ const Availability: React.FC = () => {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
                 Yeni Müsaitlik Ekle
               </h3>
-              
+              {isAdmin && (
+                <p className="text-sm text-gray-500 mb-3">
+                  {advisors.find((a) => a.id === parseInt(advisorChoice, 10))?.firstName}{' '}
+                  {advisors.find((a) => a.id === parseInt(advisorChoice, 10))?.lastName} adına ekleniyor
+                </p>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
