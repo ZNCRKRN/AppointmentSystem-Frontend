@@ -44,4 +44,12 @@ src/
   types/        Types that mirror the API DTOs
 ```
 
-The API base URL is set in `src/services/api.ts`.
+The API base URL defaults to the local API (`http://localhost:5249/api`) and can be overridden at
+build time with the `VITE_API_BASE_URL` environment variable (see `src/services/api.ts`) — used for
+a deployed build, e.g. on Netlify.
+
+## Deployment
+
+For a live deployment (Netlify for this app, Render + a Postgres database for the API), see
+[DEPLOYMENT.md](https://github.com/ZNCRKRN/AppointmentSystem-API/blob/main/DEPLOYMENT.md) in the API
+repo — it covers both parts end to end.

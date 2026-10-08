@@ -17,7 +17,9 @@ import type {
   AdminUser,
 } from '../types';
 
-const API_BASE_URL = 'http://localhost:5249/api';
+// Set VITE_API_BASE_URL at build time for a deployed environment (e.g. a Render URL);
+// falls back to the local API for `npm run dev`.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5249/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
