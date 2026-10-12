@@ -196,9 +196,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onClose, onSuccess })
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={2}
+              rows={5}
               maxLength={1000}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 resize-y"
               placeholder="Detaylar (opsiyonel)"
             />
           </div>

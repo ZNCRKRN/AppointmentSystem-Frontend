@@ -110,10 +110,17 @@ const Login: React.FC = () => {
           </form>
         </div>
 
-        <div className="text-center">
-          <Link to="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-800">
-            Şifremi unuttum
-          </Link>
+        <div className="text-center space-y-2">
+          <div>
+            <Link to="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-800">
+              Şifremi unuttum
+            </Link>
+          </div>
+          <div>
+            <Link to="/register" className="text-sm text-indigo-600 hover:text-indigo-800">
+              Hesabınız yok mu? Kayıt olun
+            </Link>
+          </div>
         </div>
       </div>
     </div>

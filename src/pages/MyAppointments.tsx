@@ -72,6 +72,7 @@ const MyAppointments: React.FC = () => {
   const [page, setPage] = useState(1);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [expandedDescriptionId, setExpandedDescriptionId] = useState<number | null>(null);
 
   const listParams = {
     page,
@@ -224,7 +225,29 @@ const MyAppointments: React.FC = () => {
                   <td className="px-8 py-6">
                     <div className="text-lg font-semibold text-gray-900 mb-1">{appointment.subject}</div>
                     {appointment.description && (
-                      <div className="text-sm text-gray-600 max-w-xs truncate">{appointment.description}</div>
+                      expandedDescriptionId === appointment.id ? (
+                        <div className="text-sm text-gray-600 max-w-md">
+                          <p className="whitespace-pre-wrap break-words">{appointment.description}</p>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedDescriptionId(null)}
+                            className="text-indigo-600 hover:text-indigo-800 font-medium mt-1"
+                          >
+                            Daralt
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-600 max-w-xs">
+                          <p className="truncate">{appointment.description}</p>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedDescriptionId(appointment.id)}
+                            className="text-indigo-600 hover:text-indigo-800 font-medium"
+                          >
+                            Tümünü oku
+                          </button>
+                        </div>
+                      )
                     )}
                   </td>
                   <td className="px-8 py-6">
