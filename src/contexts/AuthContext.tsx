@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { User, LoginRequest, RegisterRequest } from '../types';
+import type { User, LoginRequest, RegisterRequest, RegisterResponse } from '../types';
 import { authAPI } from '../services/api';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  // Resolves with the raw response: a self-registered advisor gets { pending: true, ... }
+  // instead of a session, so the caller must check before assuming they're logged in.
+  register: (data: RegisterRequest) => Promise<RegisterResponse>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -67,10 +69,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authAPI.register(data);
 
+      if ('pending' in response) {
+        return response;
+      }
+
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
       setUser(response.user);
+      return response;
     } catch (error) {
       console.error('Register error:', error);
       throw error;

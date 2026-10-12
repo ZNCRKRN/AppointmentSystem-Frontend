@@ -3,6 +3,7 @@ import type {
   LoginRequest,
   LoginResponse,
   RegisterRequest,
+  RegisterResponse,
   ResetPasswordRequest,
   Appointment,
   AppointmentListParams,
@@ -62,8 +63,8 @@ export const authAPI = {
     return response.data;
   },
 
-  register: async (userData: RegisterRequest): Promise<LoginResponse> => {
-    const response = await api.post<LoginResponse>('/Auth/register', userData);
+  register: async (userData: RegisterRequest): Promise<RegisterResponse> => {
+    const response = await api.post<RegisterResponse>('/Auth/register', userData);
     return response.data;
   },
 
@@ -177,6 +178,10 @@ export const adminAPI = {
 
   deleteUser: async (id: string): Promise<void> => {
     await api.delete(`/Admin/users/${id}`);
+  },
+
+  approveAdvisor: async (id: string): Promise<void> => {
+    await api.post(`/Admin/users/${id}/approve-advisor`);
   },
 };
 

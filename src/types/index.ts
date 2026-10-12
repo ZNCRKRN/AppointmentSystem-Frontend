@@ -48,6 +48,15 @@ export interface LoginResponse {
   user: User;
 }
 
+// A self-registered advisor gets this instead of a session: the account exists but needs
+// an admin to approve it (see AdminUsers) before they can log in.
+export interface PendingApprovalResponse {
+  pending: true;
+  message: string;
+}
+
+export type RegisterResponse = LoginResponse | PendingApprovalResponse;
+
 export interface Appointment {
   id: number;
   advisorId: number;
@@ -149,4 +158,6 @@ export interface AdminUser {
   firstName: string;
   lastName: string;
   department?: string | null;
+  // Only meaningful for an Advisor: null for other roles
+  isApproved?: boolean | null;
 }

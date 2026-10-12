@@ -20,6 +20,7 @@ const Register: React.FC = () => {
   const [form, setForm] = useState<RegisterRequest>(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pendingMessage, setPendingMessage] = useState('');
 
   const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -36,10 +37,15 @@ const Register: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setPendingMessage('');
 
     try {
-      await register(form);
-      navigate('/dashboard');
+      const response = await register(form);
+      if ('pending' in response) {
+        setPendingMessage(response.message);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: unknown) {
       const data = (err as { response?: { data?: unknown } }).response?.data;
       if (typeof data === 'string') {
@@ -70,6 +76,16 @@ const Register: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-8">
+          {pendingMessage ? (
+            <div className="text-center space-y-4">
+              <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+                {pendingMessage}
+              </div>
+              <Link to="/login" className="text-sm text-indigo-600 hover:text-indigo-800">
+                Giriş sayfasına dön
+              </Link>
+            </div>
+          ) : (
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Rol</label>
@@ -238,6 +254,7 @@ const Register: React.FC = () => {
               {loading ? 'Kayıt oluşturuluyor...' : 'Kayıt Ol'}
             </button>
           </form>
+          )}
         </div>
 
         <div className="text-center">

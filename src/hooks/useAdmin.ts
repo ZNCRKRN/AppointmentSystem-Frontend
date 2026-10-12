@@ -21,3 +21,15 @@ export const useDeleteUser = () => {
     },
   });
 };
+
+export const useApproveAdvisor = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => adminAPI.approveAdvisor(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin'] });
+      queryClient.invalidateQueries({ queryKey: ['advisors'] });
+    },
+  });
+};

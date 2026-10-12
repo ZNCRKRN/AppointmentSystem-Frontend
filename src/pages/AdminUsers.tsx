@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAdminUsers, useDeleteUser } from '../hooks/useAdmin';
+import { useAdminUsers, useDeleteUser, useApproveAdvisor } from '../hooks/useAdmin';
 import { useAuth } from '../contexts/AuthContext';
 import type { Role } from '../types';
 
@@ -19,11 +19,13 @@ const AdminUsers: React.FC = () => {
   const { user: currentUser } = useAuth();
   const { data: users = [], isLoading } = useAdminUsers();
   const deleteUser = useDeleteUser();
+  const approveAdvisor = useApproveAdvisor();
   const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const visibleUsers = users.filter((u) => roleFilter === 'all' || u.role === roleFilter);
   const count = (role: Role) => users.filter((u) => u.role === role).length;
+  const pendingAdvisorCount = users.filter((u) => u.role === 'Advisor' && u.isApproved === false).length;
 
   const handleDelete = async (id: string, email: string) => {
     if (!window.confirm(`${email} hesabı silinecek. Bu kullanıcının tüm randevuları da silinir. Emin misiniz?`)) return;
@@ -38,6 +40,17 @@ const AdminUsers: React.FC = () => {
     }
   };
 
+  const handleApprove = async (id: string, email: string) => {
+    setMessage(null);
+    try {
+      await approveAdvisor.mutateAsync(id);
+      setMessage({ type: 'success', text: `${email} danışman olarak onaylandı.` });
+    } catch (error: unknown) {
+      const data = (error as { response?: { data?: unknown } }).response?.data;
+      setMessage({ type: 'error', text: typeof data === 'string' ? data : 'Onaylanamadı.' });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -49,7 +62,7 @@ const AdminUsers: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white shadow rounded-lg p-5">
           <dt className="text-sm font-medium text-gray-500">Toplam Kullanıcı</dt>
           <dd className="text-2xl font-semibold text-gray-900">{users.length}</dd>
@@ -61,6 +74,12 @@ const AdminUsers: React.FC = () => {
         <div className="bg-white shadow rounded-lg p-5">
           <dt className="text-sm font-medium text-gray-500">Öğrenci</dt>
           <dd className="text-2xl font-semibold text-gray-900">{count('Student')}</dd>
+        </div>
+        <div className="bg-white shadow rounded-lg p-5">
+          <dt className="text-sm font-medium text-gray-500">Onay Bekleyen Danışman</dt>
+          <dd className={`text-2xl font-semibold ${pendingAdvisorCount > 0 ? 'text-yellow-600' : 'text-gray-900'}`}>
+            {pendingAdvisorCount}
+          </dd>
         </div>
       </div>
 
@@ -100,6 +119,7 @@ const AdminUsers: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bölüm</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlem</th>
               </tr>
             </thead>
@@ -118,7 +138,25 @@ const AdminUsers: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{u.department || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {u.role === 'Advisor' && (
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          u.isApproved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {u.isApproved ? 'Onaylı' : 'Onay Bekliyor'}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
+                      {u.role === 'Advisor' && !u.isApproved && (
+                        <button
+                          onClick={() => handleApprove(u.id, u.email)}
+                          disabled={approveAdvisor.isPending}
+                          className="text-green-600 hover:text-green-900 disabled:text-gray-300 disabled:cursor-not-allowed font-medium"
+                        >
+                          Onayla
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(u.id, u.email)}
                         disabled={isSelf || deleteUser.isPending}
